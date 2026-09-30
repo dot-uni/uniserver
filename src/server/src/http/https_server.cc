@@ -103,7 +103,7 @@ void HttpsServer::clientIntakeCycle(int bufsize) noexcept
         });
 
         if ((pid = fork()) == 0) {
-            close(this->sockfd_);
+            ::close(this->sockfd_);
             {
                 HttpsConnection connection(ssl, std::move(client), bufsize);
                 connection.process();

@@ -47,11 +47,6 @@ find_package(OpenSSL REQUIRED)
 
 add_subdirectory(src)
 
-
-# add_executable(server_app server/http_server/src/server.cc)
-# set_target_properties(server_app PROPERTIES OUTPUT_NAME "server")
-# target_link_libraries(server_app PRIVATE https_server http_server logging)
-
 # if(BUILD_TESTS)
 #     add_subdirectory(tests)
 # endif()

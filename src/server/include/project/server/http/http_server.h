@@ -16,6 +16,7 @@
 #include <string_view>
 #include <memory>
 #include <mutex>
+#include <atomic>
 #include <sstream>
 #include <type_traits>
 
@@ -84,6 +85,10 @@ public:
         int max_connections=kMaxConnections, 
         int bufsize=kReceptionBufSize
     );
+    bool close();
+    bool pause();
+    bool resume();
+    bool restart();
     bool continueListen();
     void stopListen() noexcept;
 protected:
@@ -95,12 +100,11 @@ protected:
     bool listenInternal(int max_connections, int bufsize) noexcept;
     virtual void clientIntakeCycle(int bufsize) noexcept;
     ClientConnection acceptConnection() noexcept;
-    void swap(HttpServer& other) noexcept;
 protected:
     int sockfd_ = kEmptyDescriptor;
     addrinfo* servinfo_ = nullptr;
     addrinfo hints_;
-    bool is_running_ = false;
+    std::atomic_bool listening_;
     std::mutex mtx_;
 };
 

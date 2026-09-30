@@ -25,15 +25,6 @@ HttpServer::~HttpServer()
 }
 
 
-void HttpServer::swap(HttpServer& other) noexcept
-{
-    std::swap(sockfd_, other.sockfd_);
-    std::swap(servinfo_, other.servinfo_);
-    std::swap(hints_, other.hints_);
-    std::swap(is_running_, other.is_running_);
-}
-
-
 bool HttpServer::listen(const char* host, const char* port, int max_connections, int bufsize) 
 {
     LOG_INFO("Starting HTTP server", {
@@ -134,7 +125,7 @@ void HttpServer::freeAddrInfo(addrinfo*& servinfo) noexcept
 void HttpServer::closeConnection(int& sockfd) noexcept 
 {
     if (sockfd > 0) {
-        close(sockfd);
+        ::close(sockfd);
         sockfd = kEmptyDescriptor;
     }
     else sockfd = kInvalidSocket;
@@ -215,7 +206,7 @@ void HttpServer::clientIntakeCycle(int bufsize) noexcept
         
 
         if ((pid = fork()) == 0) {
-            close(sockfd_);
+            ::close(sockfd_);
             {
                 HttpConnection connection(std::move(client), bufsize);
                 connection.process();

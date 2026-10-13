@@ -1,13 +1,9 @@
 add_library(project_logging STATIC
-    src/logging.cc
-    src/manager/logging_manager.cc
-    src/manager/logging_system.cc
-    src/config/configurator.cc
+    src/logging_logger.cc
+    src/logging_stream.cc
+    src/logging_manager.cc
+    src/logging_service.cc
 )
-
-if(APPLE)
-    target_sources(project_logging PRIVATE src/config/impl/macos.cc)
-endif()
 
 add_library(project::logging ALIAS project_logging)
 

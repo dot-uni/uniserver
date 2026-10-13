@@ -140,7 +140,7 @@ std::string HttpCodec::process(std::string_view raw_req) {
         resp = makeResp(status::retCode::InvalidJsonOrParams);
     }
     else {
-        resp = routing::RouterManager::Route(req_);
+        resp = routing::manager::RoutingManager::Route(req_);
 
         if (!resp) {
             LOG_CRIT("Router not initialized", {

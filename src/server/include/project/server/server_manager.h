@@ -1,6 +1,7 @@
 #ifndef SERVER_MANAGER_INCLUDED
 #define SERVER_MANAGER_INCLUDED
 
+
 namespace uni::server::manager {
 
 class ServerManager 
@@ -17,7 +18,6 @@ public:
 public:
     virtual bool Launch() = 0;
     virtual bool ShutDown() = 0;
-
     virtual bool Continue() = 0;
     virtual bool Suspension() = 0;
 };

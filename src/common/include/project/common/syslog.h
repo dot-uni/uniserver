@@ -1,16 +1,17 @@
 #ifndef SYSLOG_INCLUDED
 #define SYSLOG_INCLUDED
 
+#include <iostream>
 #include <source_location>
 #include <string>
 #include <string_view>
+#include <fmt/core.h>
+#include <fmt/format.h>
 
 #include "project/common/status/log.h"
 
 
-namespace uni::logging {
-    
-namespace status = ::uni::common::status;
+namespace uni::common {
 
 struct ErrorMessage 
 {
@@ -61,7 +62,7 @@ void sys_warn(ErrorMessage em, Args&&... args)
 }
 
 
-} // namespace uni::logging
+} // namespace uni::common
 
 
 #endif

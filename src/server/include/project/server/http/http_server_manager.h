@@ -6,9 +6,9 @@
 #include <atomic>
 #include <memory>
 
-#include "project/server/manager/server_manager.h"
-#include "project/server/http_server.h"
-#include "project/server/https_server.h"
+#include "project/server/server_manager.h"
+#include "project/server/http/http_server.h"
+#include "project/server/http/https_server.h"
 
 
 namespace uni::server::manager::http {

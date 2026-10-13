@@ -1,7 +1,7 @@
 #include <benchmark/benchmark.h>
 #include <spdlog/sinks/null_sink.h>
 #include <spdlog/spdlog.h>
-#include "project/logging/logging.h"
+#include "project/logging/logging_logger.h"
 
 
 /// There are no benchmarks yet

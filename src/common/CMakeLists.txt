@@ -4,6 +4,10 @@ add_library(project_common STATIC
     src/uuid.cc
 )
 
+if(APPLE)
+    target_sources(project_common PRIVATE src/config/config_watcher_mac.cc)
+endif()
+
 add_library(project::common ALIAS project_common)
 
 target_include_directories(project_common PUBLIC

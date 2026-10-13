@@ -1,4 +1,4 @@
-#include "project/logging/logging.h"
+#include "project/logging/logging_logger.h"
 
 
 namespace detail {
@@ -44,7 +44,7 @@ std::string ConsoleFormat(const LogInfo& i) noexcept
             base.pop_back();
         }
     } catch(fmt::format_error& mess) {
-        sys_error(mess.what());
+        common::sys_error(mess.what());
     }
     return base;
 }
@@ -148,7 +148,7 @@ std::unique_ptr<FileSink> FileSink::create(const YAML::Node& config)
     try {
         return std::make_unique<FileSink>(path, format);
     } catch(const std::exception& msg) {
-        sys_error(msg.what());
+        common::sys_error(msg.what());
     }
     return nullptr;
 }
@@ -160,7 +160,7 @@ bool FileSink::log(const LogInfo& info) noexcept
 
     file_ << inf << '\n';
     if (file_.fail()) {
-        sys_error("Error writing to log file: {}", strerror(errno));
+        common::sys_error("Error writing to log file: {}", strerror(errno));
         file_.clear(); 
         return false;
     }
@@ -176,7 +176,7 @@ bool FileSink::flush() noexcept
 {
     file_.flush();
     if (file_.fail()) {
-        sys_error("Failed to flush file: {}", std::strerror(errno));
+        common::sys_error("Failed to flush file: {}", std::strerror(errno));
         file_.clear(); 
         return false;
     }

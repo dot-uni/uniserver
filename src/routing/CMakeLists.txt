@@ -1,6 +1,6 @@
 add_library(project_routing STATIC
     src/crypto.cc
-    src/router.cc
+    src/routing_manager.cc
 )
 
 add_library(project::routing ALIAS project_routing)

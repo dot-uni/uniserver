@@ -1,22 +1,22 @@
-#include "project/routing/router.h"
+#include "project/routing/routing_manager.h"
 
 
-namespace uni::routing {
+namespace uni::routing::manager {
 
 namespace status = ::uni::common::status;
 using ::uni::logging::field;
 
 
-void RouterManager::Clear() noexcept
+void RoutingManager::Reset() noexcept
 {
     LOG_DEBUG("Resetting router instance");
-    router_ = nullptr;
+    Base::Destroy();
 }
 
 
-bool RouterManager::Get(std::string_view path, Handler h) 
+bool RoutingManager::Get(std::string_view path, Handler h) 
 {
-    if (!router_) {
+    if (!Base::Initialized()) {
         LOG_ERROR("Router not initialized", {
             field("path", path)
         });
@@ -26,7 +26,7 @@ bool RouterManager::Get(std::string_view path, Handler h)
     LOG_TRACE("Registering handler", {
         field("path", path)
     });
-    bool result = router_->get(path, std::move(h));
+    bool result = Base::Require().get(path, std::move(h));
     if (!result) {
         LOG_WARN("Failed to register handler", {
             field("path", path)
@@ -37,9 +37,9 @@ bool RouterManager::Get(std::string_view path, Handler h)
 }
 
 
-bool RouterManager::Post(std::string_view path, Handler h) 
+bool RoutingManager::Post(std::string_view path, Handler h) 
 {
-    if (!router_) {
+    if (!Base::Initialized()) {
         LOG_ERROR("Router not initialized", {
             field("path", path)
         });
@@ -49,7 +49,7 @@ bool RouterManager::Post(std::string_view path, Handler h)
     LOG_TRACE("Registering handler", {
         field("path", path)
     });
-    bool result = router_->post(path, std::move(h));
+    bool result = Base::Require().post(path, std::move(h));
     if (!result) {
         LOG_WARN("Failed to register handler", {
             field("path", path)
@@ -60,9 +60,9 @@ bool RouterManager::Post(std::string_view path, Handler h)
 }
 
 
-bool RouterManager::Put(std::string_view path, Handler h) 
+bool RoutingManager::Put(std::string_view path, Handler h) 
 {
-    if (!router_) {
+    if (!Base::Initialized()) {
         LOG_ERROR("Router not initialized", {
             field("path", path)
         });
@@ -72,7 +72,7 @@ bool RouterManager::Put(std::string_view path, Handler h)
     LOG_TRACE("Registering handler", {
         field("path", path)
     });
-    bool result = router_->put(path, std::move(h));
+    bool result = Base::Require().put(path, std::move(h));
     if (!result) {
         LOG_WARN("Failed to register handler", {
             field("path", path)
@@ -83,9 +83,9 @@ bool RouterManager::Put(std::string_view path, Handler h)
 }
 
 
-bool RouterManager::Del(std::string_view path, Handler h) 
+bool RoutingManager::Del(std::string_view path, Handler h) 
 {
-    if (!router_) {
+    if (!Base::Initialized()) {
         LOG_ERROR("Router not initialized", {
             field("path", path)
         });
@@ -95,7 +95,7 @@ bool RouterManager::Del(std::string_view path, Handler h)
     LOG_TRACE("Registering handler", {
         field("path", path)
     });
-    bool result = router_->del(path, std::move(h));
+    bool result = Base::Require().del(path, std::move(h));
     if (!result) {
         LOG_WARN("Failed to register handler", {
             field("path", path)
@@ -106,9 +106,9 @@ bool RouterManager::Del(std::string_view path, Handler h)
 }
 
 
-bool RouterManager::Patch(std::string_view path, Handler h) 
+bool RoutingManager::Patch(std::string_view path, Handler h) 
 {
-    if (!router_) {
+    if (!Base::Initialized()) {
         LOG_ERROR("Router not initialized", {
             field("path", path)
         });
@@ -118,7 +118,7 @@ bool RouterManager::Patch(std::string_view path, Handler h)
     LOG_TRACE("Registering handler", {
         field("path", path)
     });
-    bool result = router_->patch(path, std::move(h));
+    bool result = Base::Require().patch(path, std::move(h));
     if (!result) {
         LOG_WARN("Failed to register handler", {
             field("path", path)
@@ -129,15 +129,15 @@ bool RouterManager::Patch(std::string_view path, Handler h)
 }
 
 
-std::optional<server::http::Response> RouterManager::Route(const server::http::Request& req) noexcept
+std::optional<server::http::Response> RoutingManager::Route(const server::http::Request& req) noexcept
 {
-    if (!router_) {
+    if (!Base::Initialized()) {
         LOG_ERROR("Router not initialized, request dropped");
         return std::nullopt;
     }
 
     LOG_TRACE("Routing request");
-    auto response = router_->route(req);
+    auto response = Base::Require().route(req);
 
     if (!response) {
         LOG_DEBUG("No matching route found");
@@ -146,4 +146,4 @@ std::optional<server::http::Response> RouterManager::Route(const server::http::R
     return *response;
 }
 
-} // namespace uni::routing
+} // namespace uni::routing::manager

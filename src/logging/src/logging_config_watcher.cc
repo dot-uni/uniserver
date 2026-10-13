@@ -1,7 +1,12 @@
-#include "project/logging/manager/logging_manager.h"
+#include "project/logging/logging_config_watcher.h"
+
+#ifdef __APPLE__
+#include "project/logging/logging_config_watcher_macos.h"
+#endif
 
 
-namespace uni::logging::manager {
+namespace uni::logging::config {
+
 
 std::unique_ptr<ISink> CreateSink(const YAML::Node& sink)
 {
@@ -45,76 +50,7 @@ std::unique_ptr<ISink> CreateSink(const YAML::Node& sink)
 }
 
 
-/** uni::logging::manager::LogManager 
- */
-
-LogManager::LogManager(std::filesystem::path path) : logger_(nullptr), paused_(false)
-{
-    Init(std::move(path));
-}
-
-
-bool LogManager::Init(std::filesystem::path path)
-{
-    sys_info("Path to log config: '{}'", path.string());
-    std::optional<LogConfig> config = ParseLogConfig(path);
-    if (!config) { return false; }
-    
-    try {
-        logger_ = std::make_unique<Logger>(std::move(*config));
-    } catch(const std::exception& msg) {
-        sys_error("The Logger was not created {}", msg.what());
-        return false;
-    }
-    return true;
-}
-
-
-void LogManager::Pause() noexcept
-{
-    sys_info("A pause has been set in LogManager");
-    paused_ = true;
-}
-
-
-void LogManager::Remain() noexcept
-{
-    sys_info("The pause in LogManager has been removed");
-    paused_ = false;
-}
-
-
-void LogManager::ShutDown() noexcept
-{
-    logger_.reset();
-}
-
-
-std::optional<std::reference_wrapper<Logger>> LogManager::Get() const noexcept
-{
-    if (!logger_ || paused_) {
-        return std::nullopt;
-    }
-    return std::ref(*logger_);
-}
-
-
-status::log LogManager::GetLevel() const noexcept
-{
-    if (!logger_) {
-        return status::log::unknown;
-    }
-    return logger_->level();
-}
-
-
-bool LogManager::Paused() const noexcept
-{
-    return paused_;
-}
-
-
-std::optional<LogConfig> LogManager::ParseLogConfig(std::filesystem::path path)
+std::optional<LogConfig> ParseLogConfig(std::filesystem::path path)
 {
     YAML::Node config;
     try {
@@ -129,6 +65,7 @@ std::optional<LogConfig> LogManager::ParseLogConfig(std::filesystem::path path)
         return std::nullopt;
     }
 
+    bool enabled = true;
     if (config["logging"]["enabled"]) {
         if (!config["logging"]["enabled"].IsScalar()) {
             sys_error("'enabled' field in 'logging' is not a scalar");
@@ -136,12 +73,11 @@ std::optional<LogConfig> LogManager::ParseLogConfig(std::filesystem::path path)
         }
         
         if (!config["logging"]["enabled"].as<bool>()) {
-            Pause();
+            enabled = false;
             sys_info("Logging has been disabled: 'enabled: false'");
             return std::nullopt;
         }
         else {
-            Remain();
             sys_info("Logging has been enabled: 'enabled: true'");
         }
     }
@@ -156,8 +92,8 @@ std::optional<LogConfig> LogManager::ParseLogConfig(std::filesystem::path path)
         return std::nullopt;
     } 
 
-    status::log level = status::to_log(config["logging"]["level"].as<std::string>());
-    if (level == status::log::unknown) {
+    common::status::log level = common::status::to_log(config["logging"]["level"].as<std::string>());
+    if (level == common::status::log::unknown) {
         sys_error("unknown logging level");
         return std::nullopt;
     }
@@ -169,7 +105,15 @@ std::optional<LogConfig> LogManager::ParseLogConfig(std::filesystem::path path)
         }
     }
     
-    return LogConfig(level, std::move(sinks));
+    return LogConfig(enabled, level, std::move(sinks));
 }
 
-} // namespace uni::logging::manager
+
+LogConfigWatcher::LogConfigWatcher(std::filesystem::path path) : impl_(std::make_unique<LogConfigWatcherImpl>(std::move(path))) {}
+
+LogConfigWatcher::~LogConfigWatcher() = default;
+
+void LogConfigWatcher::Start() { impl_->Start(); }
+void LogConfigWatcher::Stop() { impl_->Stop(); }
+
+} // namespace uni::logging::config

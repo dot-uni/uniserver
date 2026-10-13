@@ -11,11 +11,11 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    logging::manager::LogSystem::Start(argv[3]);
+    logging::manager::LoggingService::Start(argv[3]);
 
-    routing::RouterManager::Init();
+    routing::manager::RoutingManager::Init();
 
-    routing::RouterManager::Get("/uni", [](server::http::Request&& req){
+    routing::manager::RoutingManager::Get("/uni", [](server::http::Request&& req){
         return server::http::makeResp(common::status::retCode::Success, {
             {"Message", "The request was received and successfully processed..."}
         });

@@ -9,7 +9,7 @@
 
 #include "project/server/http/http_codec.h"
 #include "project/server/http/http_message.h"
-#include "project/logging/manager/logging_system.h"
+#include "project/logging/logging.h"
 #include "project/server/http/http_constants.h"
 
 

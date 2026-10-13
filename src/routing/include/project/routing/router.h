@@ -7,9 +7,8 @@
 #include <functional>
 
 #include "project/routing/routing_tree.h"
-#include "project/common/status/retcode.h" 
 #include "project/routing/crypto.h"
-#include "project/logging/manager/logging_system.h"
+#include "project/logging/logging.h"
 
 
 namespace uni::routing {
@@ -100,55 +99,6 @@ std::optional<server::http::Response> Router<HashKey, Hash>::route(server::http:
     }
     server::http::Response resp = h(std::move(req));
     return resp;
-}
-
-
-class RouterManager final
-{
-public:
-    template <
-        typename HashKey = cryp::SipHashKey,
-        typename Hash = cryp::SipHash
-    > static void Init();
-
-    template <
-        typename HashKey = cryp::SipHashKey,
-        typename Hash = cryp::SipHash
-    > static void Init(const HashKey& key);
-
-    static void Clear() noexcept;
-
-    static bool Get(std::string_view path, Handler h);
-    static bool Post(std::string_view path, Handler h);
-    static bool Put(std::string_view path, Handler h);
-    static bool Del(std::string_view path, Handler h);
-    static bool Patch(std::string_view path, Handler h);
-    
-    static std::optional<server::http::Response> Route(const server::http::Request& req) noexcept;
-private:
-    inline static std::unique_ptr<RouterBase> router_ = nullptr;
-};
-
-
-template <typename HashKey, typename Hash> 
-void RouterManager::Init()
-{
-    if (router_) {
-        LOG_WARN("Router already initialized, replacing existing instance");
-    }
-    LOG_DEBUG("Initializing router with default hash key");
-    router_ = std::make_unique<Router<HashKey, Hash>>();
-}
-
-
-template <typename HashKey, typename Hash> 
-void RouterManager::Init(const HashKey& key)
-{
-    if (router_) {
-        LOG_WARN("Router already initialized, replacing existing instance");
-    }
-    LOG_DEBUG("Initializing router with provided hash key");
-    router_ = std::make_unique<Router<HashKey, Hash>>(key);
 }
 
 } // namespace uni::routing

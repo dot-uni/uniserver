@@ -1,13 +1,11 @@
-#include "project/logging/manager/logging_system.h"
+#include "project/logging/logging_stream.h"
 
 
 namespace uni::logging::manager {
 
-
-
 bool ShouldLog(status::log level) noexcept
 {
-    status::log set_level = LogSystem::GetLevel();
+    common::status::log set_level = LoggingService::GetLevel();
 
     if (!static_cast<int>(set_level) || set_level > level) {
         return false;
@@ -103,114 +101,10 @@ LogStream::~LogStream()
         }
         logger_.log(std::move(linfo_));
     } catch(const std::exception& msg) {
-        sys_error(msg.what());
+        common::sys_error(msg.what());
     } catch(...) {
-        sys_error("unknown error in LogStream::~LogStream");
+        common::sys_error("unknown error in LogStream::~LogStream");
     }
 } 
-
-
-
-bool LogSystem::Init(std::filesystem::path path)
-{
-    std::unique_lock lock(mtx_);
-
-    try {
-        lm_ = std::make_unique<LogManager>(path);
-        cw_ = std::make_unique<config::ConfigWatcher>(
-            path, 
-            [](std::filesystem::path p) { return lm_->Init(p); }
-        );
-    } catch(const std::bad_alloc& msg) {
-        sys_error("Error initializing LogManager and config::ConfigWatcher: {}", msg.what());
-        return false;
-    } catch(const std::runtime_error& msg) {
-        sys_error("Error in the constructor: {}", msg.what());
-        return false;
-    }
-
-    lm_->Pause();
-
-    lock.unlock();
-
-    sys_info("LogManager and config::ConfigWatcher initialized");
-    return true;
-}
-
-
-bool LogSystem::Start() 
-{
-    std::lock_guard lock(mtx_);
-    if (!lm_ || !cw_) {
-        sys_error("The LogSystem::Init method was not called to initialize the linking");
-        return false;
-    }
-
-    cw_->Start();
-    if (lm_->Paused()) {
-        lm_->Remain();
-    }
-
-    return true;
-}
-
-
-bool LogSystem::Start(std::filesystem::path path)
-{
-    std::unique_lock lock(mtx_);
-
-    try {
-        lm_ = std::make_unique<LogManager>(path);
-        cw_ = std::make_unique<config::ConfigWatcher>(
-            path, 
-            [](std::filesystem::path p) { return lm_->Init(p); }
-        );
-    } catch(const std::bad_alloc& msg) {
-        sys_error("Error initializing LogManager and config::ConfigWatcher: {}", msg.what());
-        return false;
-    } catch(const std::runtime_error& msg) {
-        sys_error("Error in the constructor: {}", msg.what());
-        return false;
-    }
-
-    cw_->Start();
-
-    lock.unlock();
-
-    sys_info("The LogSystem was successfully started");
-    return true;
-}
-
-
-void LogSystem::Stop()
-{
-    std::lock_guard lock(mtx_);
-    
-    if (!lm_ || !cw_) {
-        sys_error("The LogSystem::Init method was not called to initialize the linking");
-        return;
-    }
-
-    cw_->Stop();
-    lm_->Pause();
-}
-
-
-std::optional<std::reference_wrapper<Logger>> LogSystem::Get() noexcept
-{
-    if (!lm_) {
-        return std::nullopt;
-    }
-    return lm_->Get();
-}
-
-
-status::log LogSystem::GetLevel() noexcept
-{
-    if (!lm_) {
-        return status::log::unknown;
-    }
-    return lm_->GetLevel();
-}
 
 } // namespace uni::logging::manager

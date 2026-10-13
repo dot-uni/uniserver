@@ -3,3 +3,4 @@ benchmark/
 log_20*
 certs/
 .DS_Store
+.vscode
